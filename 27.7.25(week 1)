@@ -1,0 +1,126 @@
+1  :  Sieve of Eratosthenes
+
+import java.util.*;
+
+public class SieveOfEratosthenes {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Find primes up to: ");
+        int n = sc.nextInt();
+
+        boolean[] isPrime = new boolean[n + 1];
+        Arrays.fill(isPrime, true); // Assume all numbers are prime initially
+        isPrime[0] = false;
+        isPrime[1] = false;
+
+        // Sieve algorithm
+        for (int p = 2; p < Math.sqrt(n); p++) {
+            if (isPrime[p]) {
+                for (int multiple = p * p; multiple <= n; multiple += p) {
+                    isPrime[multiple] = false;
+                }
+            }
+        }
+
+        // Print all primes
+        System.out.println("Prime numbers up to " + n + ":");
+        for (int i = 2; i <= n; i++) {
+            if (isPrime[i]) {
+                System.out.print(i + " ");
+            }
+        }
+    }
+}
+
+2  :  GCD
+Method 1(loop)
+
+import java.util.Scanner;
+
+public class GCDLoop {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter first number: ");
+        int a = sc.nextInt();
+        System.out.print("Enter second number: ");
+        int b = sc.nextInt();
+
+        int gcd = 1; // Start with 1 (smallest possible GCD)
+        for (int i = Math.min(a, b); i >= 1; i--) {
+            if (a % i == 0 && b % i == 0) {
+                gcd = i;
+                break; // Found the largest, stop loop
+            }
+        }
+
+        System.out.println("GCD (Loop method) = " + gcd);
+    }
+}
+
+Method 2(Euclidean-recursion)
+
+import java.util.Scanner;
+
+public class Main {
+    public static int gcd(int a, int b) {
+        // Base case: if one is 0, return the other
+        if (b == 0) {
+            return a;
+        }
+        return gcd(b, a % b); // Recursive step
+    }
+
+    public static void main(String[] args) {
+        int a = 60, b = 36;
+        int result = gcd(a, b);
+        System.out.println("GCD = " + result);
+    }
+}
+//without recursion
+public class Main {
+    public static int gcd(int a, int b) {
+        while (b != 0) {
+            int temp = b;
+            b = a % b; // remainder
+            a = temp;  // swap
+        }
+        return a;
+    }
+
+    public static void main(String[] args) {
+        int a = 60, b = 36;
+        int result = gcd(a, b);
+        System.out.println("GCD = " + result);
+    }
+}
+
+3    :  LCM
+
+public class Main {
+    
+    public static int gcd(int a, int b) {
+        while(b == 0){
+            return a;
+        }
+        
+        return gcd(b,a%b);
+    }
+    
+   
+    public static int lcm(int a, int b) {
+        return (a * b) / gcd(a, b); 
+    }
+    
+    public static void main(String[] args) {
+        int[] numbers = {4,6,8};  
+        int result = numbers[0];  
+        
+    
+        for (int i = 1; i < numbers.length; i++) {
+            result = lcm(result, numbers[i]);
+        }
+        
+        System.out.println(result); 
+    }
+}
+
