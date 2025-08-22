@@ -1,0 +1,452 @@
+1.  Majority Element
+
+Approach 1:Hashing
+import java.util.HashMap;
+
+public class MajorityElementHashMap {
+    
+    // Function to find majority element using HashMap
+    static Integer findMajority(int[] arr) {
+        HashMap<Integer, Integer> map = new HashMap<>();
+        int n = arr.length;
+
+        // Count frequency of each element
+        for (int num : arr) {
+            map.put(num, map.getOrDefault(num, 0) + 1);
+        }
+
+        // Check if any element appears > n/2 times
+        for (int key : map.keySet()) {
+            if (map.get(key) > n / 2) {
+                return key; // majority element
+            }
+        }
+
+        return null; // no majority element
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {2, 2, 1, 1, 1, 2, 2};
+
+        Integer majority = findMajority(arr);
+
+        if (majority != null) {
+            System.out.println("Majority element: " + majority);
+        } else {
+            System.out.println("No majority element found.");
+        }
+    }
+}
+Time Complexity: O(n) (one pass to build map, one pass to check).
+
+Space Complexity: O(n) (in worst case, all elements are unique, so map stores n keys).
+
+
+Approach 2: Moore Voting Algorithm
+
+public class MajorityElementMoore {
+    
+    // Function to find majority element using Moore's Voting Algorithm
+    static Integer findMajority(int[] arr) {
+        int candidate = 0, count = 0;
+
+        // Step 1: Find candidate
+        for (int num : arr) {
+            if (count == 0) {
+                candidate = num;
+                count = 1;
+            } else if (num == candidate) {
+                count++;
+            } else {
+                count--;
+            }
+        }
+
+        // Step 2: Verify candidate
+        count = 0;
+        for (int num : arr) {
+            if (num == candidate) count++;
+        }
+
+        if (count > arr.length / 2) {
+            return candidate; // majority element
+        } else {
+            return null; // no majority element
+        }
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {2, 2, 1, 1, 1, 2, 2};
+
+        Integer majority = findMajority(arr);
+
+        if (majority != null) {
+            System.out.println("Majority element: " + majority);
+        } else {
+            System.out.println("No majority element found.");
+        }
+    }
+} 
+algorithm works in O(n) time and O(1) space because:
+
+It only does two passes over the array (find candidate + verify).
+
+It doesn’t use extra arrays or hash maps.
+
+
+2.     Find pair with sum equal to x
+
+Approach 1:  brute force
+
+public class PairSumBruteForce {
+    public static void findPairs(int[] arr, int x) {
+        int n = arr.length;
+
+        // check every pair
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                if (arr[i] + arr[j] == x) {
+                    System.out.println("(" + arr[i] + ", " + arr[j] + ")");
+                }
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {1, 4, 6, 2, 3, 5};
+        int x = 7;
+
+        findPairs(arr, x);
+    }
+}
+Works for unsorted arrays.
+⏳ Time Complexity = O(n²)
+💾 Space Complexity = O(1)
+
+Approach 2:  2 pointer method
+
+import java.util.Arrays;
+
+public class PairSumTwoPointer {
+    public static void findPairs(int[] arr, int x) {
+        Arrays.sort(arr); // must sort first
+        int left = 0, right = arr.length - 1;
+
+        while (left < right) {
+            int sum = arr[left] + arr[right];
+
+            if (sum == x) {
+                System.out.println("(" + arr[left] + ", " + arr[right] + ")");
+                left++;
+                right--; // move both
+            } else if (sum < x) {
+                left++; // need bigger sum
+            } else {
+                right--; // need smaller sum
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {1, 4, 6, 2, 3, 5};
+        int x = 7;
+
+        findPairs(arr, x);
+    }
+}
+ Faster than brute force.
+⏳ Time Complexity = O(n log n) (because of sorting) + O(n) (scan) = O(n log n)
+💾 Space Complexity = O(1)
+
+
+Approach 3:   Hashing
+
+import java.util.*;
+
+public class PairSumHashing {
+    public static void findPairs(int[] arr, int x) {
+        HashSet<Integer> set = new HashSet<>();
+
+        for (int a : arr) {
+            int b = x - a; // what we need with 'a'
+            if (set.contains(b)) {
+                System.out.println("(" + a + ", " + b + ")");
+            }
+            set.add(a); // store current element
+        }
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {1, 4, 6, 2, 3, 5};
+        int x = 7;
+
+        findPairs(arr, x);
+    }
+}
+Time Complexity: O(n) (each lookup in HashSet is O(1) average)
+
+Space Complexity: O(n) (for storing seen elements)
+
+
+3. Segregate 0's and 1's
+
+Approach 1:   Trivial
+
+public class Segregate01Trivial {
+    public static void segregate(int[] arr) {
+        int count0 = 0;
+
+        // Count number of 0s
+        for (int num : arr) {
+            if (num == 0) count0++;
+        }
+
+        // Fill first count0 places with 0
+        for (int i = 0; i < count0; i++) {
+            arr[i] = 0;
+        }
+
+        // Fill rest with 1
+        for (int i = count0; i < arr.length; i++) {
+            arr[i] = 1;
+        }
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {0, 1, 1, 0, 1, 0, 0, 1};
+        segregate(arr);
+
+        for (int x : arr) System.out.print(x + " ");
+    }
+}
+Time: O(n) → count pass + fill pass
+
+Space: O(1) → only one counter
+
+
+Approach 2 :   2 pointer swapping
+
+
+public class Segregate01TwoPointer {
+    public static void segregate(int[] arr) {
+        int left = 0, right = arr.length - 1;
+
+        while (left < right) {
+            // Move left forward if 0
+            if (arr[left] == 0) {
+                left++;
+            }
+            // Move right backward if 1
+            else if (arr[right] == 1) {
+                right--;
+            }
+            // Swap if mismatch
+            else {
+                int temp = arr[left];
+                arr[left] = arr[right];
+                arr[right] = temp;
+                left++;
+                right--;
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {0, 1, 1, 0, 1, 0, 0, 1};
+        segregate(arr);
+
+        for (int x : arr) System.out.print(x + " ");
+    }
+}
+Time: O(n) → single pass
+
+Space: O(1) → only two pointers
+
+4. Pair sum closest to 0
+
+Approach 1:comparing mag using for loops
+
+public class PairSumClosestToZero {
+    static void findPairBruteForce(int[] arr) {
+        int n = arr.length;
+        int minSum = Integer.MAX_VALUE;
+        int pair1 = 0, pair2 = 0;
+
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = i + 1; j < n; j++) {
+                int sum = arr[i] + arr[j];
+                if (Math.abs(sum) < Math.abs(minSum)) {
+                    minSum = sum;
+                    pair1 = arr[i];
+                    pair2 = arr[j];
+                }
+            }
+        }
+
+        System.out.println("Pair closest to 0: (" + pair1 + ", " + pair2 + ")");
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {1, 60, -10, 70, -80, 85};
+        findPairBruteForce(arr);
+    }
+}
+Time = O(n²) (check all pairs)
+
+Space = O(1)
+
+Approach 2 : 2 pointer
+
+import java.util.Arrays;
+
+public class PairSumClosestToZero {
+    static void findPairTwoPointer(int[] arr) {
+        Arrays.sort(arr); // Step 1: Sort
+        int left = 0, right = arr.length - 1;
+        int minSum = Integer.MAX_VALUE;
+        int pair1 = 0, pair2 = 0;
+
+        while (left < right) {
+            int sum = arr[left] + arr[right];
+
+            if (Math.abs(sum) < Math.abs(minSum)) {
+                minSum = sum;
+                pair1 = arr[left];
+                pair2 = arr[right];
+            }
+
+            if (sum < 0) {
+                left++; // need larger number
+            } else {
+                right--; // need smaller number
+            }
+        }
+
+        System.out.println("Pair closest to 0: (" + pair1 + ", " + pair2 + ")");
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {1, 60, -10, 70, -80, 85};
+        findPairTwoPointer(arr);
+    }
+}
+Sorting = O(n log n)
+
+Two-pointer scan = O(n)
+
+Total = O(n log n)
+
+Space = O(1)
+
+5.  Two repeated elements
+
+Approach 1:
+
+import java.util.*;
+
+public class TwoRepeatsHash {
+    static void findRepeats(int[] arr, int n) {
+        // frequency map
+        Map<Integer, Integer> map = new HashMap<>();
+
+        for (int num : arr) {
+            map.put(num, map.getOrDefault(num, 0) + 1);
+        }
+
+        // check who appears twice
+        for (int key : map.keySet()) {
+            if (map.get(key) > 1) {
+                System.out.print(key + " ");
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {4, 2, 4, 5, 2, 3, 1};
+        int n = 5;
+        findRepeats(arr, n);
+    }
+}
+Time: O(n)
+
+Space: O(n) (hashmap)
+
+Approach 2: Index approach
+
+public class TwoRepeatsIndex {
+    static void findRepeats(int[] arr, int n) {
+        for (int i = 0; i < arr.length; i++) {
+            int index = Math.abs(arr[i]);
+
+            if (arr[index] < 0) {
+                // already visited → duplicate
+                System.out.print(index + " ");
+            } else {
+                arr[index] = -arr[index]; // mark visited
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {4, 2, 4, 5, 2, 3, 1};
+        int n = 5;
+        findRepeats(arr, n);
+    }
+}
+Time: O(n)
+
+Space: O(1) (in-place marking)
+
+Approach 3: XOR
+
+public class TwoRepeatsXOR {
+
+    static void xorApproach(int[] arr, int n) {
+        int xor = 0;
+
+        // Step 1: XOR of all elements in array
+        for (int num : arr) xor ^= num;
+
+        // Step 2: XOR with numbers from 1..n
+        for (int num = 1; num <= n; num++) xor ^= num;
+
+        // Now xor = a ^ b (the two repeated numbers)
+
+        // Step 3: Find rightmost set bit
+        int rightMostSetBit = xor & ~(xor - 1);
+
+        int num1 = 0, num2 = 0;
+
+        // Step 4: Split into 2 groups (array elements)
+        for (int num : arr) {
+            if ((num & rightMostSetBit) != 0)
+                num1 ^= num;
+            else
+                num2 ^= num;
+        }
+
+        // Step 5: Split into 2 groups (numbers 1..n)
+        for (int num = 1; num <= n; num++) {
+            if ((num & rightMostSetBit) != 0)
+                num1 ^= num;
+            else
+                num2 ^= num;
+        }
+
+        // Print repeated numbers
+        System.out.println("Two repeated numbers are: " + num1 + " and " + num2);
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {1, 2, 3, 4, 5, 6, 7, 2, 7};
+        int n = 7; // range is 1..n
+
+        xorApproach(arr, n);
+    }
+}
+
+O(n) + O(n) + O(1) + O(n) + O(n) + O(1) = O(n)
+so TC=O(n)
+SC=O(1)
+
+
