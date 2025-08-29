@@ -1,0 +1,557 @@
+1.  Triplet sum in a array
+import java.util.*;
+
+public class TripletSumAll {
+    public static void findAllTriplets(int[] arr, int target) {
+        int n = arr.length;
+        Set<String> seen = new HashSet<>(); // to avoid duplicate triplets
+
+        for (int i = 0; i < n - 2; i++) {
+            int current = arr[i];
+            int newTarget = target - current;
+
+            // HashMap for 2-sum part
+            HashMap<Integer, Integer> map = new HashMap<>();
+
+            for (int j = i + 1; j < n; j++) {
+                int complement = newTarget - arr[j];
+
+                if (map.containsKey(complement)) {
+                    // Sort triplet to avoid duplicates like (12,9,3) and (12,3,9)
+                    int[] triplet = {current, arr[j], complement};
+                    Arrays.sort(triplet);
+                    String key = Arrays.toString(triplet);
+
+                    if (!seen.contains(key)) {
+                        seen.add(key);
+                        System.out.println("Triplet found: " + Arrays.toString(triplet));
+                    }
+                }
+                map.put(arr[j], j);
+            }
+        }
+
+        if (seen.isEmpty()) {
+            System.out.println("No triplets found!");
+        }
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {12, 3, 4, 1, 6, 9, 3, 9}; // notice duplicates
+        int target = 24;
+
+        findAllTriplets(arr, target);
+    }
+}
+Time Complexity = O(n²)
+Space Complexity = O(n)
+
+2.   Bitonic point(binary search approach)
+
+public class BitonicPoint {
+    public static int findBitonicPoint(int[] arr, int n) {
+        int left = 0, right = n - 1;
+
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+
+            // Edge cases: handle boundaries
+            if (mid > 0 && mid < n - 1) {
+                if (arr[mid] > arr[mid - 1] && arr[mid] > arr[mid + 1]) {
+                    return arr[mid]; // bitonic point found
+                } else if (arr[mid] > arr[mid - 1] && arr[mid] < arr[mid + 1]) {
+                    left = mid + 1; // move right (increasing part)
+                } else {
+                    right = mid - 1; // move left (decreasing part)
+                }
+            } else if (mid == 0) {
+                return (arr[0] >= arr[1]) ? arr[0] : arr[1];
+            } else if (mid == n - 1) {
+                return (arr[n - 1] >= arr[n - 2]) ? arr[n - 1] : arr[n - 2];
+            }
+        }
+        return -1; // should not happen if array is bitonic
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {1, 3, 8, 12, 4, 2};
+        int n = arr.length;
+        int bitonicPoint = findBitonicPoint(arr, n);
+
+        System.out.println("Bitonic Point: " + bitonicPoint);
+    }
+}
+Time Complexity: O(log n) (binary search style).
+
+Space Complexity: O(1).
+
+3.  Subarray with sum equal to x
+
+import java.util.*;
+
+public class SubarrayWithSum {
+    public static void findSubarray(int[] arr, int x) {
+        int n = arr.length;
+        int left = 0, right = 0;
+        int currSum = 0;
+
+        while (right < n) {
+            // expand window
+            currSum += arr[right];
+
+            // shrink window while sum is too big
+            while (currSum > x && left <= right) {
+                currSum -= arr[left];
+                left++;
+            }
+
+            // check if sum found
+            if (currSum == x) {
+                System.out.println("Subarray found from index " + left + " to " + right);
+                return;
+            }
+
+            right++;
+        }
+
+        System.out.println("No subarray with given sum");
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {1, 4, 20, 3, 10, 5};
+        int x = 33;
+        findSubarray(arr, x);
+    }
+}
+Time Complexity: O(n) (each element added & removed at most once)
+Space Complexity: O(1)
+
+if target is negative(use hashmap)
+
+\import java.util.*;
+
+public class SubarrayWithSumHashMap {
+    public static void findSubarray(int[] arr, int target) {
+        Map<Integer, Integer> map = new HashMap<>();
+        int currSum = 0;
+
+        // Important: put sum=0 at index -1 (handles subarray starting from 0)
+        map.put(0, -1);
+
+        for (int i = 0; i < arr.length; i++) {
+            currSum += arr[i];
+
+            // Check if there is a prefix sum we can subtract
+            if (map.containsKey(currSum - target)) {
+                int start = map.get(currSum - target) + 1;
+                int end = i;
+                System.out.println("Subarray found from index " + start + " to " + end);
+                return;
+            }
+
+            // Store prefix sum
+            map.put(currSum, i);
+        }
+
+        System.out.println("No subarray with given sum");
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {10, 2, -2, -20, 10};
+        int target = -10;
+        findSubarray(arr, target);
+    }
+}
+
+
+4.Trapping rain water
+
+method 1: O(n) space
+
+public class TrappingRainWater {
+    public static int trap(int[] arr) {
+        int n = arr.length;
+        if (n == 0) return 0;
+
+        int[] leftMax = new int[n];
+        int[] rightMax = new int[n];
+        int water = 0;
+
+        // Fill leftMax
+        leftMax[0] = arr[0];
+        for (int i = 1; i < n; i++) {
+            leftMax[i] = Math.max(leftMax[i - 1], arr[i]);
+        }
+
+        // Fill rightMax
+        rightMax[n - 1] = arr[n - 1];
+        for (int i = n - 2; i >= 0; i--) {
+            rightMax[i] = Math.max(rightMax[i + 1], arr[i]);
+        }
+
+        // Calculate trapped water
+        for (int i = 0; i < n; i++) {
+            water += Math.min(leftMax[i], rightMax[i]) - arr[i];
+        }
+
+        return water;
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {2, 4, 0, 1, 3, 2, 6, 5};
+        System.out.println("Trapped Water: " + trap(arr)); // Output = 10
+    }
+}
+
+
+method 2:  2 pointer approach  O(1) space
+
+public class TrappingRainWater {
+    public static int trap(int[] arr) {
+        int n = arr.length;
+        int left = 0, right = n - 1;
+        int leftMax = 0, rightMax = 0, water = 0;
+
+        while (left <= right) {
+            if (arr[left] <= arr[right]) {
+                if (arr[left] >= leftMax) {
+                    leftMax = arr[left];
+                } else {
+                    water += leftMax - arr[left];
+                }
+                left++;
+            } else {
+                if (arr[right] >= rightMax) {
+                    rightMax = arr[right];
+                } else {
+                    water += rightMax - arr[right];
+                }
+                right--;
+            }
+        }
+        return water;
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {2, 4, 0, 1, 3, 2, 6, 5};
+        System.out.println("Trapped Water: " + trap(arr)); // Output = 10
+    }
+}
+
+
+BACKTRACKING
+
+5. Towers of Hanoi(Recursive Backtracking)
+
+public class TowersOfHanoi {
+    // Recursive function to solve Tower of Hanoi
+    public static void solveHanoi(int n, char source, char auxiliary, char destination) {
+        // Base case: only 1 disk → move directly
+        if (n == 1) {
+            System.out.println("Move disk 1 from " + source + " to " + destination);
+            return;
+        }
+
+        // Step 1: Move n-1 disks from source to auxiliary
+        solveHanoi(n - 1, source, destination, auxiliary);
+
+        // Step 2: Move nth disk from source to destination
+        System.out.println("Move disk " + n + " from " + source + " to " + destination);
+
+        // Step 3: Move n-1 disks from auxiliary to destination
+        solveHanoi(n - 1, auxiliary, source, destination);
+    }
+
+    public static void main(String[] args) {
+        int n = 3; // number of disks
+        solveHanoi(n, 'A', 'B', 'C');  // A=source, B=auxiliary, C=destination
+    }
+}
+
+Move disk 1 from A to C
+Move disk 2 from A to B
+Move disk 1 from C to B
+Move disk 3 from A to C
+Move disk 1 from B to A
+Move disk 2 from B to C
+Move disk 1 from A to C
+
+Time Complexity: O(2^N)
+
+Space Complexity: O(N)
+
+6.For given n,find all binary numbers
+
+public class BinaryNumbersBacktracking {
+    // Recursive function to generate binary strings
+    public static void generateBinary(int n, String curr) {
+        // Base case: if string length = n → print it
+        if (curr.length() == n) {
+            System.out.println(curr);
+            return;
+        }
+
+        // Choice 1: add '0'
+        generateBinary(n, curr + "0");
+
+        // Choice 2: add '1'
+        generateBinary(n, curr + "1");
+    }
+
+    public static void main(String[] args) {
+        int n = 3; // Example: binary strings of length 3
+        generateBinary(n, "");
+    }
+}
+
+Call: generateBinary(3, "")
+ ├─ add '0' → generateBinary(3, "0")
+ │    ├─ add '0' → generateBinary(3, "00")
+ │    │    ├─ add '0' → generateBinary(3, "000") ✅ print "000"
+ │    │    └─ add '1' → generateBinary(3, "001") ✅ print "001"
+ │    └─ add '1' → generateBinary(3, "01")
+ │         ├─ add '0' → generateBinary(3, "010") ✅ print "010"
+ │         └─ add '1' → generateBinary(3, "011") ✅ print "011"
+ └─ add '1' → generateBinary(3, "1")
+      ├─ add '0' → generateBinary(3, "10")
+      │    ├─ add '0' → generateBinary(3, "100") ✅ print "100"
+      │    └─ add '1' → generateBinary(3, "101") ✅ print "101"
+      └─ add '1' → generateBinary(3, "11")
+           ├─ add '0' → generateBinary(3, "110") ✅ print "110"
+           └─ add '1' → generateBinary(3, "111") ✅ print "111"
+
+7.  Knight Tour
+
+public class KnightsTour {
+    static int N = 8; // Chessboard size
+
+    // All 8 possible moves of a knight
+    static int[] rowMoves = {2, 1, -1, -2, -2, -1, 1, 2};
+    static int[] colMoves = {1, 2, 2, 1, -1, -2, -2, -1};
+
+    // Function to print the solution board
+    static void printSolution(int[][] board) {
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                System.out.printf("%2d ", board[i][j]);
+            }
+            System.out.println();
+        }
+    }
+
+    // Solve Knight’s Tour
+    static boolean solveKnightTour() {
+        int[][] board = new int[N][N];
+
+        // Initialize all squares with -1
+        for (int i = 0; i < N; i++)
+            for (int j = 0; j < N; j++)
+                board[i][j] = -1;
+
+        // Knight starts at (0,0)
+        board[0][0] = 0;
+
+        // Start recursion from step 1 (0 already filled)
+        if (!solveKnightUtil(0, 0, 1, board)) {
+            System.out.println("Solution does not exist");
+            return false;
+        } else {
+            printSolution(board);
+        }
+        return true;
+    }
+
+    // Recursive backtracking utility
+    static boolean solveKnightUtil(int x, int y, int moveCount, int[][] board) {
+        // Base case: all squares visited
+        if (moveCount == N * N) return true;
+
+        // Try all next 8 moves
+        for (int k = 0; k < 8; k++) {
+            int nextX = x + rowMoves[k];
+            int nextY = y + colMoves[k];
+
+            if (isSafe(nextX, nextY, board)) {
+                board[nextX][nextY] = moveCount;
+
+                if (solveKnightUtil(nextX, nextY, moveCount + 1, board))
+                    return true;
+
+                // Backtrack
+                board[nextX][nextY] = -1;
+            }
+        }
+        return false;
+    }
+
+    // Check if position is valid and not visited
+    static boolean isSafe(int x, int y, int[][] board) {
+        return (x >= 0 && y >= 0 && x < N && y < N && board[x][y] == -1);
+    }
+
+    public static void main(String[] args) {
+        solveKnightTour();
+    }
+}
+
+Time Complexity=O(8^N^2)
+Space Complexity=O(N^2)
+
+
+8.  Rat in a maze
+
+public class RatMaze {
+    static int N = 4;
+
+    // Maze grid
+    static int[][] maze = {
+        {1, 0, 0, 0},
+        {1, 1, 0, 1},
+        {0, 1, 0, 0},
+        {1, 1, 1, 1}
+    };
+
+    // Solution grid
+    static int[][] sol = new int[N][N];
+
+    // Print solution path
+    static void printSolution() {
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++)
+                System.out.print(sol[i][j] + " ");
+            System.out.println();
+        }
+    }
+
+    // Solve Rat in a Maze
+    static boolean solveMaze() {
+        if (!solveUtil(0, 0)) {
+            System.out.println("No solution");
+            return false;
+        }
+        printSolution();
+        return true;
+    }
+
+    // Recursive utility
+    static boolean solveUtil(int x, int y) {
+        // Base case: destination reached
+        if (x == N - 1 && y == N - 1 && maze[x][y] == 1) {
+            sol[x][y] = 1;
+            return true;
+        }
+
+        // Check if maze[x][y] is valid
+        if (isSafe(x, y)) {
+            // Mark current cell
+            sol[x][y] = 1;
+
+            // Move Down
+            if (solveUtil(x + 1, y)) return true;
+
+            // Move Right
+            if (solveUtil(x, y + 1)) return true;
+
+            // Move Up
+            if (solveUtil(x - 1, y)) return true;
+
+            // Move Left
+            if (solveUtil(x, y - 1)) return true;
+
+            // Backtrack (no path from here)
+            sol[x][y] = 0;
+            return false;
+        }
+
+        return false;
+    }
+
+    // Check if move is valid
+    static boolean isSafe(int x, int y) {
+        return (x >= 0 && y >= 0 && x < N && y < N && maze[x][y] == 1 && sol[x][y] == 0);
+    }
+
+    public static void main(String[] args) {
+        solveMaze();
+    }
+}
+
+Time Complexity=O(4^N^2)
+Space Complexity=O(N^2)
+
+9. N Queen
+'
+public class NQueens {
+    static int N = 4;  // You can change this to test for different N
+
+    // Print the board
+    static void printSolution(int[][] board) {
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                System.out.print(board[i][j] + " ");
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }
+
+    // Solve N-Queens
+    static boolean solveNQueens() {
+        int[][] board = new int[N][N];
+
+        if (!solveUtil(board, 0)) {
+            System.out.println("No solution exists");
+            return false;
+        }
+        return true;
+    }
+
+    // Utility function
+    static boolean solveUtil(int[][] board, int row) {
+        // Base case: All queens placed
+        if (row >= N) {
+            printSolution(board);
+            return true; // If you want ALL solutions, don’t return here, continue searching
+        }
+
+        // Try placing queen in each column
+        for (int col = 0; col < N; col++) {
+            if (isSafe(board, row, col)) {
+                board[row][col] = 1; // place queen
+
+                if (solveUtil(board, row + 1)) {
+                    return true; // solution found
+                }
+
+                // Backtrack
+                board[row][col] = 0;
+            }
+        }
+
+        return false; // No column worked
+    }
+
+    // Check if placing a queen at (row, col) is safe
+    static boolean isSafe(int[][] board, int row, int col) {
+        // Check column
+        for (int i = 0; i < row; i++)
+            if (board[i][col] == 1) return false;
+
+        // Check upper left diagonal
+        for (int i = row - 1, j = col - 1; i >= 0 && j >= 0; i--, j--)
+            if (board[i][j] == 1) return false;
+
+        // Check upper right diagonal
+        for (int i = row - 1, j = col + 1; i >= 0 && j < N; i--, j++)
+            if (board[i][j] == 1) return false;
+
+        return true;
+    }
+
+    public static void main(String[] args) {
+        solveNQueens();
+    }
+}
+Time Complexity: O(N^N)
+Space Complexity: O(N^2)
+
