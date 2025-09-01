@@ -59,6 +59,12 @@ public class GCDLoop {
 
 Method 2(Euclidean-recursion)
 
+(Mathematically: gcd(a, b) = gcd(b, a % b))
+
+Keep doing this until remainder (b) becomes 0.
+
+When b = 0, the other number a is the GCD.
+
 import java.util.Scanner;
 
 public class Main {
