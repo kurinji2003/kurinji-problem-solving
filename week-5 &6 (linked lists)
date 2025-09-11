@@ -1,0 +1,664 @@
+LINKED LISTS
+
+1.IMPLEMENTATION OF LL
+
+class LinkedList {
+    private Node head;
+
+    // -------- Insert at end --------
+    public void insertAtEnd(int data) {
+        Node newNode = new Node(data);
+        if (head == null) {
+            head = newNode;
+            return;
+        }
+        Node curr = head;
+        while (curr.next != null) {
+            curr = curr.next;
+        }
+        curr.next = newNode;
+    }
+
+    // -------- Delete at end --------
+    public void deleteAtEnd() {
+        if (head == null) return;           // empty list
+        if (head.next == null) {            // only one element
+            head = null;
+            return;
+        }
+        Node curr = head;
+        while (curr.next.next != null) {    // stop at 2nd last
+            curr = curr.next;
+        }
+        curr.next = null;                   // drop last node
+    }
+
+    // -------- Delete at middle (by position: 1-based index) --------
+    public void deleteAtPosition(int pos) {
+        if (pos <= 0 || head == null) return;
+
+        if (pos == 1) {       // delete head
+            head = head.next;
+            return;
+        }
+        Node curr = head;
+        for (int i = 1; curr != null && i < pos - 1; i++) {
+            curr = curr.next;
+        }
+        if (curr == null || curr.next == null) return;  // invalid pos
+        curr.next = curr.next.next;
+    }
+
+    // -------- Reverse linked list --------
+    public void reverse() {
+        Node prev = null;
+        Node curr = head;
+        Node next = null;
+
+        while (curr != null) {
+            next = curr.next;   // save next
+            curr.next = prev;   // reverse link
+            prev = curr;        // move prev
+            curr = next;        // move curr
+        }
+        head = prev;
+    }
+
+    // -------- Display --------
+    public void display() {
+        Node curr = head;
+        while (curr != null) {
+            System.out.print(curr.data + " ");
+            curr = curr.next;
+        }
+        System.out.println();
+    }
+}
+
+FIND K TH NODE FROM END
+
+APPROACH 1:
+class LinkedList {
+    private Node head;
+
+    // ... (other methods)
+
+    public Node kthFromEndByLength(int k) {
+        if (head == null || k <= 0) return null;
+
+        // Step 1: Find length
+        int n = 0;
+        Node curr = head;
+        while (curr != null) {
+            n++;
+            curr = curr.next;
+        }
+
+        // If k > n, no such node
+        if (k > n) return null;
+
+        // Step 2: Move (n-k) steps from head
+        curr = head;
+        for (int i = 0; i < n - k; i++) {
+            curr = curr.next;
+        }
+        return curr;
+    }
+}
+
+
+APPROACH 2: SLOW AND FAST POINTER
+
+public Node kthFromEndTwoPointer(int k) {
+    if (head == null || k <= 0) return null;
+
+    Node slow = head, fast = head;
+
+    // Step 1: Move fast k steps
+    for (int i = 0; i < k; i++) {
+        if (fast == null) return null;  // k > length
+        fast = fast.next;
+    }
+
+    // Step 2: Move slow and fast until fast reaches end
+    while (fast != null) {
+        slow = slow.next;
+        fast = fast.next;
+    }
+
+    return slow;
+}
+
+
+2.MERGE SORT ON LL
+
+class Node {
+    int data;
+    Node next;
+
+    Node(int data) {
+        this.data = data;
+        this.next = null;
+    }
+}
+class Solution {
+    private Node merge(Node l1, Node l2) {
+        Node dummy = new Node(0);
+        Node tail = dummy;
+
+        while (l1 != null && l2 != null) {
+            if (l1.data <= l2.data) {
+                tail.next = l1;
+                l1 = l1.next;
+            } else {
+                tail.next = l2;
+                l2 = l2.next;
+            }
+            tail = tail.next;
+        }
+
+        if (l1 != null) tail.next = l1;
+        if (l2 != null) tail.next = l2;
+
+        return dummy.next;
+    }
+    private Node getMiddle(Node head) {
+    if (head == null) return null;
+
+    Node slow = head;
+    Node fast = head;
+
+    while (fast.next != null && fast.next.next != null) {
+        slow = slow.next;          // move 1 step
+        fast = fast.next.next;     // move 2 steps
+    }
+
+    return slow; // slow points to middle
+}
+    public Node mergeSort(Node head) {
+        if (head == null || head.next == null) return head;
+
+        // Step 1: Split the list into two halves
+        Node mid = getMiddle(head);
+        Node nextHalf = mid.next;
+        mid.next = null; // break the list
+
+        // Step 2: Recursively sort both halves
+        Node left = mergeSort(head);
+        Node right = mergeSort(nextHalf);
+
+        // Step 3: Merge the sorted halves
+        return merge(left, right);
+    }
+}
+3.Flattening a LL
+Method 1:
+
+class Node {
+    int data;
+    Node next;
+    Node bottom;
+
+    Node(int x) {
+        data = x;
+        next = null;
+        bottom = null;
+    }
+}
+
+class Solution {
+
+    // Merge two sorted bottom-linked lists
+    private Node merge(Node a, Node b) {
+        Node dummy = new Node(0);
+        Node tail = dummy;
+
+        while (a != null && b != null) {
+            if (a.data <= b.data) {
+                tail.bottom = a;
+                a = a.bottom;
+            } else {
+                tail.bottom = b;
+                b = b.bottom;
+            }
+            tail = tail.bottom;
+        }
+
+        if (a != null) tail.bottom = a;
+        if (b != null) tail.bottom = b;
+
+        return dummy.bottom;
+    }
+
+    // Flatten the list (trivial method, O(n·k))
+    public Node flatten(Node root) {
+        if (root == null) return null;
+
+        Node result = root;       // start with first list
+        Node nextList = root.next;
+
+        while (nextList != null) {
+            result = merge(result, nextList); // merge current with next
+            nextList = nextList.next;
+        }
+
+        return result;  // fully flattened list
+    }
+}
+
+Method 2:
+class Node {
+    int data;
+    Node next;
+    Node bottom;
+
+    Node(int x) {
+        data = x;
+        next = null;
+        bottom = null;
+    }
+}
+
+class Solution {
+
+    // Merge two sorted bottom-linked lists
+    private Node merge(Node a, Node b) {
+        Node dummy = new Node(0);
+        Node tail = dummy;
+
+        while (a != null && b != null) {
+            if (a.data <= b.data) {
+                tail.bottom = a;
+                a = a.bottom;
+            } else {
+                tail.bottom = b;
+                b = b.bottom;
+            }
+            tail = tail.bottom;
+        }
+
+        if (a != null) tail.bottom = a;
+        if (b != null) tail.bottom = b;
+
+        return dummy.bottom;
+    }
+
+    // Get the middle node of next-chain (like in merge sort)
+private Node getMiddle(Node head) {
+    if (head == null) return null;
+
+    Node slow = head;
+    Node fast = head;
+
+    while (fast.next != null && fast.next.next != null) {
+        slow = slow.next;          // move 1 step
+        fast = fast.next.next;     // move 2 steps
+    }
+
+    return slow; // slow points to middle
+}
+    // Flatten using divide and conquer
+    public Node flatten(Node root) {
+        if (root == null || root.next == null) return root;
+
+        // Find middle of next-chain
+        Node mid = getMiddle(root);
+        Node nextHalf = mid.next;
+        mid.next = null; // split into two halves
+
+        // Recursively flatten both halves
+        Node left = flatten(root);
+        Node right = flatten(nextHalf);
+
+        // Merge results
+        return merge(left, right);
+    }
+}
+
+4.COPY LIST WITH RANDOM NUMBER
+
+Method 1 :
+class Node {
+    int val;
+    Node next;
+    Node random;
+
+    Node(int val) {
+        this.val = val;
+        this.next = null;
+        this.random = null;
+    }
+}
+import java.util.HashMap;
+
+class Solution {
+    public Node copyRandomList(Node head) {
+        if (head == null) return null;
+
+        // Step 1: Create a map from original nodes to copied nodes
+        HashMap<Node, Node> map = new HashMap<>();
+        Node curr = head;
+        while (curr != null) {
+            map.put(curr, new Node(curr.val));
+            curr = curr.next;
+        }
+
+        // Step 2: Assign next and random pointers
+        curr = head;
+        while (curr != null) {
+            map.get(curr).next = map.get(curr.next);       // copy next pointer
+            map.get(curr).random = map.get(curr.random);   // copy random pointer
+            curr = curr.next;
+        }
+
+        // Step 3: Return head of copied list
+        return map.get(head);
+    }
+}
+
+Method 2:
+class Solution {
+    public Node copyRandomList(Node head) {
+        if (head == null) return null;
+
+        Node curr = head;
+
+        // Step 1: Clone each node and insert it right after the original node
+        while (curr != null) {
+            Node copy = new Node(curr.val);
+            copy.next = curr.next;
+            curr.next = copy;
+            curr = copy.next;
+        }
+
+        // Step 2: Assign random pointers for the cloned nodes
+        curr = head;
+        while (curr != null) {
+            if (curr.random != null) {
+                curr.next.random = curr.random.next; // original.random.next = cloned node
+            }
+            curr = curr.next.next; // move to next original node
+        }
+
+        // Step 3: Separate the original list and the cloned list
+        curr = head;
+        Node dummy = new Node(0);
+        Node copyCurr = dummy;
+
+        while (curr != null) {
+            Node copy = curr.next;
+            copyCurr.next = copy;
+            copyCurr = copy;
+
+            // Restore original list
+            curr.next = copy.next;
+            curr = curr.next;
+        }
+
+        return dummy.next;
+    }
+}
+
+5.  ADD 2 NUMBERS IN A LL
+
+class Solution {
+    public Node addTwoLists(Node l1, Node l2) {
+        Node dummy = new Node(0); // dummy head
+        Node tail = dummy;
+        int carry = 0;
+
+        while (l1 != null || l2 != null || carry != 0) {  //The loop ends only when all three are false simultaneously.
+            int sum = carry;
+
+            if (l1 != null) {
+                sum += l1.data;
+                l1 = l1.next;
+            }
+
+            if (l2 != null) {
+                sum += l2.data;
+                l2 = l2.next;
+            }
+
+            carry = sum / 10;
+            tail.next = new Node(sum % 10);
+            tail = tail.next;
+        }
+
+        return dummy.next;
+    }
+}
+
+6.  MERGE 2 SORTED LL
+class Solution {
+    public Node mergeTwoLists(Node l1, Node l2) {
+        Node dummy = new Node(0); // dummy head
+        Node tail = dummy;
+
+        while (l1 != null && l2 != null) {
+            if (l1.data <= l2.data) {
+                tail.next = l1;
+                l1 = l1.next;
+            } else {
+                tail.next = l2;
+                l2 = l2.next;
+            }
+            tail = tail.next;
+        }
+
+        // attach remaining nodes
+        if (l1 != null) tail.next = l1;
+        if (l2 != null) tail.next = l2;
+
+        return dummy.next; // head of merged list
+    }
+}
+Complexity
+Time Complexity (TC): O(m + n) → traverse both lists once
+Space Complexity (SC): O(1) → only pointers used, no extra nodes created
+
+7. FIND FIRST NODE OF A LOOP IN LL
+
+Floyd’s cycle Detection 
+class Node {
+    int data;
+    Node next;
+
+    Node(int x) {
+        data = x;
+        next = null;
+    }
+}
+
+class Solution {
+    // Function to detect first node of loop
+    public Node detectCycle(Node head) {
+        if (head == null || head.next == null) return null;
+
+        Node slow = head, fast = head;
+        
+        // Step 1: Detect cycle
+        while (fast != null && fast.next != null) {
+            slow = slow.next;         // move 1 step
+            fast = fast.next.next;    // move 2 steps
+            
+            if (slow == fast) { // cycle detected
+                // Step 2: find entry point
+                Node start = head;
+                while (start != slow) {
+                    start = start.next;
+                    slow = slow.next;
+                }
+                return start; // first node of loop
+            }
+        }
+        return null; // no loop
+    }
+}
+
+8. PALINDROME LL
+class Node {
+    int data;
+    Node next;
+
+    Node(int x) {
+        data = x;
+        next = null;
+    }
+}
+
+class Solution {
+    // Function to check if the linked list is a palindrome
+    public boolean isPalindrome(Node head) {
+        if (head == null || head.next == null) return true;
+
+        // Step 1: Find middle
+        Node slow = head, fast = head;
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+
+        // Step 2: Reverse second half
+        Node secondHalf = reverse(slow);
+
+        // Step 3: Compare both halves
+        Node firstHalf = head;
+        Node temp = secondHalf; // store reference to restore later
+        boolean isPalin = true;
+        while (temp != null) {
+            if (firstHalf.data != temp.data) {
+                isPalin = false;
+                break;
+            }
+            firstHalf = firstHalf.next;
+            temp = temp.next;
+        }
+
+        // Step 4: Restore the list (optional)
+        reverse(secondHalf);
+
+        return isPalin;
+    }
+
+    // Helper: reverse a linked list
+    private Node reverse(Node head) {
+        Node prev = null, curr = head, next = null;
+        while (curr != null) {
+            next = curr.next;
+            curr.next = prev;
+            prev = curr;
+            curr = next;
+        }
+        return prev;
+    }
+}
+
+9.ROTATE A LL BY K TIMES
+
+class Solution {
+    public Node rotateRight(Node head, int k) {
+        if (head == null || head.next == null || k == 0) return head;
+
+        // 1. Find length and tail
+        Node curr = head;
+        int len = 1;
+        while (curr.next != null) {
+            curr = curr.next;
+            len++;
+        }
+        Node tail = curr;
+
+        // 2. Normalize k
+        k = k % len;
+        if (k == 0) return head;
+
+        // 3. Find (len-k)th node
+        int steps = len - k;
+        curr = head;
+        for (int i = 1; i < steps; i++) {
+            curr = curr.next;
+        }
+
+        // 4. Break and rearrange
+        Node newHead = curr.next;
+        curr.next = null;
+        tail.next = head;
+
+        return newHead;
+    }
+}
+
+10.INTERSECTION OF LL
+HASHMAP
+
+import java.util.*;
+
+class Solution {
+    public Node getIntersection(Node headA, Node headB) {
+        if (headA == null || headB == null) return null;
+
+        // Step 1: Store nodes of List A in a HashSet
+        HashSet<Node> set = new HashSet<>();
+        Node curr = headA;
+        while (curr != null) {
+            set.add(curr);   // store reference, not value
+            curr = curr.next;
+        }
+
+        // Step 2: Traverse List B, check if any node is in set
+        curr = headB;
+        while (curr != null) {
+            if (set.contains(curr)) {
+                return curr;  // intersection found
+            }
+            curr = curr.next;
+        }
+
+        return null;  // no intersection
+    }
+}
+
+APPROACH 2:
+
+class Solution {
+    public Node getIntersection(Node headA, Node headB) {
+        if (headA == null || headB == null) return null;
+
+        // Step 1: Find lengths
+        int lenA = getLength(headA);
+        int lenB = getLength(headB);
+
+        // Step 2: Find difference
+        int diff = Math.abs(lenA - lenB);
+
+        // Step 3: Move longer list ahead by diff
+        Node currA = headA;
+        Node currB = headB;
+        if (lenA > lenB) {
+            for (int i = 0; i < diff; i++) currA = currA.next;
+        } else {
+            for (int i = 0; i < diff; i++) currB = currB.next;
+        }
+
+        // Step 4: Traverse both lists together
+        while (currA != null && currB != null) {
+            if (currA == currB) return currA;  // intersection found
+            currA = currA.next;
+            currB = currB.next;
+        }
+
+        return null;  // no intersection
+    }
+
+    private int getLength(Node head) {
+        int len = 0;
+        Node curr = head;
+        while (curr != null) {
+            len++;
+            curr = curr.next;
+        }
+        return len;
+    }
+}
+
