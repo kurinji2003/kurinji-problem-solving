@@ -1,0 +1,398 @@
+TREES  - PART 2
+Q1)Construct Binary Tree from Preorder and Inorder Traversal
+Key Idea
+
+1.In preorder, the first element is always the root.
+
+2.In inorder, elements to the left of root = left subtree, elements to the right = right subtree.
+
+3.Recursively build left and right subtrees.
+
+4.To optimize, use a HashMap to store inorder values → indices, so we can split left/right in O(1) instead of scanning the array every time.
+
+class Solution {
+    int preIndex = 0; // pointer in preorder
+    Map<Integer, Integer> inorderMap = new HashMap<>();
+    
+    public TreeNode buildTree(int[] preorder, int[] inorder) {
+        // Build hashmap: value -> inorder index
+        for (int i = 0; i < inorder.length; i++) {
+            inorderMap.put(inorder[i], i);
+        }
+        return helper(preorder, 0, inorder.length - 1);
+    }
+    
+    private TreeNode helper(int[] preorder, int inStart, int inEnd) {
+        // Base case
+        if (inStart > inEnd) return null;
+        
+        // Get current root from preorder
+        int rootVal = preorder[preIndex++];
+        TreeNode root = new TreeNode(rootVal);
+        
+        // Split inorder by root position
+        int inIndex = inorderMap.get(rootVal);
+        
+        // Build left and right subtrees
+        root.left = helper(preorder, inStart, inIndex - 1);
+        root.right = helper(preorder, inIndex + 1, inEnd);
+        
+        return root;
+    }
+}
+preorder = [3, 9, 20, 15, 7]
+inorder  = [9, 3, 15, 20, 7]
+Step 1: Start
+
+PreIndex = 0 → root = 3 (from preorder)
+
+Inorder index of 3 = 1
+
+Left subtree = inorder[0..0] → [9]
+
+Right subtree = inorder[2..4] → [15,20,7]
+
+Step 2: Build Left Subtree
+
+PreIndex = 1 → root = 9
+
+Inorder index of 9 = 0 → no left/right children → leaf
+
+Step 3: Build Right Subtree
+
+PreIndex = 2 → root = 20
+
+Inorder index of 20 = 3
+
+Left subtree = inorder[2..2] → [15]
+
+Right subtree = inorder[4..4] → [7]
+
+Step 4: Build Left of 20
+
+PreIndex = 3 → root = 15 → leaf
+
+Step 5: Build Right of 20
+
+PreIndex = 4 → root = 7 → leaf
+
+        3
+       / \
+      9   20
+         /  \
+        15   7
+
+Complexity
+
+Time: O(n) (each node visited once, hashmap lookup O(1))
+
+Space: O(n) (hashmap + recursion stack in worst case)
+
+method 2 using recursion
+class Solution {
+    int preIndex = 0; // global pointer for preorder
+    
+    public TreeNode buildTree(int[] preorder, int[] inorder) {
+        return constructUsingInorderAndPreorder(preorder, inorder, 0, inorder.length - 1);
+    }
+    
+    private TreeNode constructUsingInorderAndPreorder(int[] preorder, int[] inorder, int inStart, int inEnd) {
+        // Base case
+        if (inStart > inEnd) return null;
+        
+        // Take current node from preorder
+        TreeNode newNode = new TreeNode(preorder[preIndex++]);
+        
+        // If leaf node
+        if (inStart == inEnd) return newNode;
+        
+        // Find position of this node in inorder
+        int inIndex = searchIndex(inorder, newNode.val, inStart, inEnd);
+        
+        // Recursively construct left and right subtrees
+        newNode.left = constructUsingInorderAndPreorder(preorder, inorder, inStart, inIndex - 1);
+        newNode.right = constructUsingInorderAndPreorder(preorder, inorder, inIndex + 1, inEnd);
+        
+        return newNode;
+    }
+    
+    // Helper to find index of value in inorder
+    private int searchIndex(int[] arr, int key, int start, int end) {
+        for (int i = start; i <= end; i++) {
+            if (arr[i] == key) return i;
+        }
+        return -1; // should not happen if input is valid
+    }
+}
+Complexity
+
+Time: O(n²) → because for each node, we search its index in inorder.
+
+Space: O(n) recursion stack.
+
+Q2) Construct Binary Tree from Inorder and Postorder Traversal.
+class Solution {
+    int postIndex; // pointer for postorder
+    Map<Integer, Integer> inorderMap = new HashMap<>();
+    
+    public TreeNode buildTree(int[] inorder, int[] postorder) {
+        // Fill map: value -> inorder index
+        for (int i = 0; i < inorder.length; i++) {
+            inorderMap.put(inorder[i], i);
+        }
+        
+        // Start from last index of postorder (root)
+        postIndex = postorder.length - 1;
+        
+        return helper(postorder, 0, inorder.length - 1);
+    }
+    
+    private TreeNode helper(int[] postorder, int inStart, int inEnd) {
+        // Base case
+        if (inStart > inEnd) return null;
+        
+        // Get current root from postorder
+        int rootVal = postorder[postIndex--];
+        TreeNode root = new TreeNode(rootVal);
+        
+        // Find root index in inorder
+        int inIndex = inorderMap.get(rootVal);
+        
+        // IMPORTANT: build right subtree first, then left
+        root.right = helper(postorder, inIndex + 1, inEnd);
+        root.left = helper(postorder, inStart, inIndex - 1);
+        
+        return root;
+    }
+}
+inorder   = [9, 3, 15, 20, 7]
+postorder = [9, 15, 7, 20, 3]
+Start: postIndex=4 → root=3.
+In inorder, 3 at index 1.
+Left=[9], Right=[15,20,7].
+
+Build right (inStart=2..4)
+postIndex=3 → root=20.
+In inorder, 20 at index 3.
+Left=[15], Right=[7].
+
+Right of 20 (inStart=4..4)
+postIndex=2 → root=7 → leaf.
+
+Left of 20 (inStart=2..2)
+postIndex=1 → root=15 → leaf.
+
+Left of 3 (inStart=0..0)
+postIndex=0 → root=9 → leaf.
+        3
+       / \
+      9   20
+         /  \
+        15   7
+General Rule
+
+Preorder: Build left first, then right
+(because preorder lists nodes as Root → Left → Right).
+
+Postorder: Build right first, then left
+(because when reading backward, order is Root ← Right ← Left).
+
+If we swapped the order in postorder construction, the tree would be wrong, since nodes meant for the right subtree would get consumed into the left.
+
+Q3) Vertical Traversal
+
+class Solution {
+
+    // Helper DFS function
+    private static void traversalHelper(TreeNode curr, int row, int col,
+                                        Map<Integer, TreeMap<Integer, List<Integer>>> traversalMap) {
+        if (curr == null) return;
+
+        // Ensure the column exists
+        traversalMap.putIfAbsent(col, new TreeMap<>());
+
+        // Ensure the row list exists
+        traversalMap.get(col).putIfAbsent(row, new ArrayList<>());
+
+        // Add current node value
+        traversalMap.get(col).get(row).add(curr.val);
+
+        // Recurse left (row+1, col-1)
+        traversalHelper(curr.left, row + 1, col - 1, traversalMap);
+
+        // Recurse right (row+1, col+1)
+        traversalHelper(curr.right, row + 1, col + 1, traversalMap);
+    }
+
+    public static List<List<Integer>> verticalTraversal(TreeNode root) {
+        // Map: column -> (row -> list of values)
+        Map<Integer, TreeMap<Integer, List<Integer>>> traversalMap = new TreeMap<>();
+
+        // DFS to populate the map
+        traversalHelper(root, 0, 0, traversalMap);
+
+        List<List<Integer>> result = new ArrayList<>();
+
+        // Traverse columns in sorted order
+        for (Map.Entry<Integer, TreeMap<Integer, List<Integer>>> entry : traversalMap.entrySet()) {
+            List<Integer> tempTraversal = new ArrayList<>();
+
+            // Traverse rows in sorted order
+            for (List<Integer> values : entry.getValue().values()) {
+                // Sort nodes at same row & column
+                Collections.sort(values);
+                tempTraversal.addAll(values);
+            }
+
+            result.add(tempTraversal);
+        }
+
+        return result;
+    }
+}
+DFS traversal (traversalHelper):
+
+curr → current node
+
+row → depth (0=root, increases downward)
+
+col → column (-1 for left, +1 for right)
+
+Store node value in traversalMap[col][row]
+
+After DFS, traversalMap contains all nodes grouped by column and row.
+
+Build result:
+
+Columns are traversed in ascending order (TreeMap ensures this)
+
+Within each column, rows are traversed top-to-bottom (TreeMap)
+
+Sort node values at same row & column
+
+Add sorted nodes to result
+       3
+      / \
+     9   20
+        /  \
+       15   7
+traversalMap after DFS:
+
+-1 -> {1 -> [9]}
+ 0 -> {0 -> [3], 2 -> [15]}
+ 1 -> {1 -> [20]}
+ 2 -> {2 -> [7]}
+
+Sorting values and combining per column → final output:
+
+[
+  [9],       // col -1
+  [3, 15],   // col 0
+  [20],      // col 1
+  [7]        // col 2
+]
+
+Q4)Top View of a Binary Tree
+
+class Solution {
+    public List<Integer> topView(TreeNode root) {
+        List<Integer> result = new ArrayList<>();
+        if (root == null) return result;
+
+        // Map: horizontal distance -> first node value
+        Map<Integer, Integer> topViewMap = new TreeMap<>();
+
+        // Queue for BFS (node + its horizontal distance)
+        Queue<Pair<TreeNode, Integer>> queue = new LinkedList<>();
+        queue.offer(new Pair<>(root, 0));
+
+        while (!queue.isEmpty()) {
+            Pair<TreeNode, Integer> curr = queue.poll();
+            TreeNode node = curr.getKey();
+            int hd = curr.getValue();
+
+            // If this horizontal distance not seen before, add it
+            if (!topViewMap.containsKey(hd)) {
+                topViewMap.put(hd, node.val);
+            }
+
+            // Left child has hd - 1
+            if (node.left != null) {
+                queue.offer(new Pair<>(node.left, hd - 1));
+            }
+
+            // Right child has hd + 1
+            if (node.right != null) {
+                queue.offer(new Pair<>(node.right, hd + 1));
+            }
+        }
+
+        // Collect result in order (TreeMap keeps keys sorted)
+        for (int val : topViewMap.values()) {
+            result.add(val);
+        }
+
+        return result;
+    }
+}
+        1
+       / \
+      2   3
+       \
+        4
+         \
+          5
+           \
+            6
+BFS visits nodes in order:
+1(hd=0), 2(hd=-1), 3(hd=1), 4(hd=0), 5(hd=1), 6(hd=2)
+
+First node per column:
+hd=-1 → 2, hd=0 → 1, hd=1 → 3, hd=2 → 6
+
+Output:
+
+[2, 1, 3, 6]
+Time Complexity: O(N) (each node visited once)
+Space Complexity: O(N) (queue + map storage)
+
+Q5)lowest common ancestor in a bt
+
+class Solution {
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        // Base case
+        if (root == null || root == p || root == q) {
+            return root;
+        }
+
+        // Search left and right subtrees
+        TreeNode left = lowestCommonAncestor(root.left, p, q);
+        TreeNode right = lowestCommonAncestor(root.right, p, q);
+
+        // If both sides return non-null → root is LCA
+        if (left != null && right != null) {
+            return root;
+        }
+
+        // Otherwise, return non-null side
+        return (left != null) ? left : right;
+    }
+}
+        3
+       / \
+      5   1
+     / \ / \
+    6  2 0  8
+      / \
+     7   4
+Find LCA of p=5, q=1:
+
+At root=3, left returns 5, right returns 1 → both non-null → LCA = 3.
+
+Find LCA of p=5, q=4:
+
+At root=3, left returns 5, right returns null.
+
+At root=5, left=null, right finds 4.
+
+LCA = 5.
