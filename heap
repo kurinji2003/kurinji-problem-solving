@@ -1,0 +1,750 @@
+HEAP
+HEAP OPERATION USING ARRAY(1 based index)
+
+public class HeapOperations {
+    static int size = 0;      // Current number of elements in heap
+    static int[] heap = new int[100]; // Heap array (1-indexed for easy math)
+
+    // ✅ Function to insert a new element into the heap
+    static void insert(int value) {
+        size++;
+        int i = size;
+        heap[i] = value;
+
+        // Bubble up (heapify up)
+        while (i > 1 && heap[i / 2] < heap[i]) {
+            // Swap parent and child
+            int temp = heap[i / 2];
+            heap[i / 2] = heap[i];
+            heap[i] = temp;
+
+            i = i / 2; // Move up
+        }
+    }
+
+    // ✅ Function to delete (extract) the root element (max element)
+    static int deleteRoot() {
+        if (size == 0) return -1;
+
+        int root = heap[1]; // Store root to return later
+        heap[1] = heap[size]; // Move last element to root
+        size--;
+
+        // Heapify down from root
+        heapify(1);
+
+        return root;
+    }
+
+    // ✅ Heapify function (for Max-Heap)
+    static void heapify(int i) {
+        int largest = i;
+        int left = 2 * i;
+        int right = 2 * i + 1;
+
+        // Check if left child is larger
+        if (left <= size && heap[left] > heap[largest])
+            largest = left;
+
+        // Check if right child is larger
+        if (right <= size && heap[right] > heap[largest])
+            largest = right;
+
+        // If largest is not the current node, swap and continue heapifying
+        if (largest != i) {
+            int temp = heap[i];
+            heap[i] = heap[largest];
+            heap[largest] = temp;
+
+            heapify(largest);
+        }
+    }
+
+    // ✅ Function to print the heap
+    static void printHeap() {
+        for (int i = 1; i <= size; i++) {
+            System.out.print(heap[i] + " ");
+        }
+        System.out.println();
+    }
+
+    // ✅ Driver code
+    public static void main(String[] args) {
+        insert(10);
+        insert(20);
+        insert(5);
+        insert(30);
+        insert(25);
+
+        System.out.println("Heap after insertions:");
+        printHeap();
+
+        System.out.println("Deleted root: " + deleteRoot());
+        System.out.println("Heap after deletion:");
+        printHeap();
+    }
+}
+
+MINHEAP USING PRIORITY QUEUE(default behaviour)
+
+import java.util.PriorityQueue;
+
+public class MinHeapDemo {
+    public static void main(String[] args) {
+        // Create a Min-Heap (default)
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+
+        // Insert elements
+        minHeap.offer(10);
+        minHeap.offer(5);
+        minHeap.offer(20);
+        minHeap.offer(2);
+
+        System.out.println("Min-Heap: " + minHeap);
+
+        // Peek (get smallest element)
+        System.out.println("Top element (min): " + minHeap.peek());
+
+        // Remove (extract min)
+        System.out.println("Removed: " + minHeap.poll());
+        System.out.println("Heap after removal: " + minHeap);
+
+        // Add another element
+        minHeap.offer(1);
+        System.out.println("Heap after adding 1: " + minHeap);
+    }
+}
+
+MAXHEAP USING PRIORITY QUEUE( custom Comparator)
+
+import java.util.PriorityQueue;
+
+public class MaxHeapDemo {
+    public static void main(String[] args) {
+        // Create a Max-Heap
+        PriorityQueue<Integer> maxHeap = new PriorityQueue<>((a, b) -> b - a);
+
+        // Insert elements
+        maxHeap.offer(10);
+        maxHeap.offer(5);
+        maxHeap.offer(20);
+        maxHeap.offer(2);
+
+        System.out.println("Max-Heap: " + maxHeap);
+
+        // Peek (get largest element)
+        System.out.println("Top element (max): " + maxHeap.peek());
+
+        // Remove (extract max)
+        System.out.println("Removed: " + maxHeap.poll());
+        System.out.println("Heap after removal: " + maxHeap);
+
+        // Add another element
+        maxHeap.offer(25);
+        System.out.println("Heap after adding 25: " + maxHeap);
+    }
+}
+| Operation              | Description                         | Time Complexity |
+| ---------------------- | ----------------------------------- | --------------- |
+| `add(e)` or `offer(e)` | Insert an element                   | **O(log n)**    |
+| `peek()`               | View top (highest priority) element | **O(1)**        |
+| `poll()`               | Remove and return top element       | **O(log n)**    |
+| `isEmpty()`            | Check if queue is empty             | **O(1)**        |
+
+HEAP SORT
+
+Idea (for ascending order)
+
+1️⃣ Build a Max-Heap from the array.
+→ The largest element is now at the root (index 0).
+
+2️⃣ Swap the root with the last element.
+→ Now the last element is in its correct sorted position.
+
+3️⃣ Reduce the heap size (ignore the last element) and
+heapify the new root again.
+
+4️⃣ Repeat until the heap size becomes 1.
+
+Array = [4, 10, 3, 5, 1]
+
+Step 1️⃣: Build Max-Heap
+
+After heapify → [10, 5, 3, 4, 1]
+Step 2️⃣: Swap root (10) with last (1)
+
+[1, 5, 3, 4, 10] → now heap size = 4 (ignore last)
+Heapify → [5, 4, 3, 1, 10]
+
+Step 3️⃣: Swap root (5) with last (1)
+
+[1, 4, 3, 5, 10] → heapify size 3
+→ [4, 1, 3, 5, 10]
+
+Step 4️⃣: Swap root (4) with last (3)
+
+[3, 1, 4, 5, 10] → heapify size 2
+→ [3, 1, 4, 5, 10] (already okay)
+
+Step 5️⃣: Swap root (3) with last (1)
+
+[1, 3, 4, 5, 10] ✅ Sorted ascending!
+Why start from n/2 - 1 in heapify?
+
+Because in a 0-indexed array heap (like Java’s arrays),
+👉 all elements from index n/2 to n-1 are leaf nodes.
+
+And leaf nodes already satisfy the heap property (they have no children to compare with).
+
+So you only need to heapify non-leaf nodes — i.e., the parent nodes.
+public class HeapSort {
+
+    // Function to heapify subtree rooted at index i
+    // n is the size of the heap
+    static void heapify(int[] arr, int n, int i) {
+        int largest = i;          // Initialize largest as root
+        int left = 2 * i + 1;     // Left child
+        int right = 2 * i + 2;    // Right child
+
+        // If left child is larger than root
+        if (left < n && arr[left] > arr[largest])
+            largest = left;
+
+        // If right child is larger than current largest
+        if (right < n && arr[right] > arr[largest])
+            largest = right;
+
+        // If largest is not root
+        if (largest != i) {
+            int temp = arr[i];
+            arr[i] = arr[largest];
+            arr[largest] = temp;
+
+            // Recursively heapify the affected subtree
+            heapify(arr, n, largest);
+        }
+    }
+
+    // Main function to perform heap sort
+    static void heapSort(int[] arr) {
+        int n = arr.length;
+
+        // Step 1: Build Max-Heap
+        for (int i = n / 2 - 1; i >= 0; i--) {
+            heapify(arr, n, i);
+        }
+
+        // Step 2: Extract elements one by one
+        for (int i = n - 1; i > 0; i--) {
+            // Move current root to end
+            int temp = arr[0];
+            arr[0] = arr[i];
+            arr[i] = temp;
+
+            // Call heapify on the reduced heap
+            heapify(arr, i, 0);
+        }
+    }
+
+    // Utility function to print array
+    static void printArray(int[] arr) {
+        for (int val : arr) {
+            System.out.print(val + " ");
+        }
+        System.out.println();
+    }
+
+    // Driver code
+    public static void main(String[] args) {
+        int[] arr = {4, 10, 3, 5, 1};
+
+        System.out.println("Original array:");
+        printArray(arr);
+
+        heapSort(arr);
+
+        System.out.println("Sorted array:");
+        printArray(arr);
+    }
+}  
+
+Sort a nearly sorted Array
+
+import java.util.PriorityQueue;
+
+public class NearlySortedArrayPQ {
+
+    // Function to sort a k-sorted array
+    public static void sortNearlySorted(int[] arr, int k) {
+        int n = arr.length;
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+
+        int index = 0; // For output position
+
+        // Step 1: Add first k+1 elements to min-heap
+        for (int i = 0; i <= k && i < n; i++) {
+            minHeap.add(arr[i]);
+        }
+
+        // Step 2: Process remaining elements
+        for (int i = k + 1; i < n; i++) {
+            arr[index++] = minHeap.poll();  // Extract min element
+            minHeap.add(arr[i]);             // Add next element
+        }
+
+        // Step 3: Extract remaining elements from heap
+        while (!minHeap.isEmpty()) {
+            arr[index++] = minHeap.poll();
+        }
+    }
+
+    // Utility function to print array
+    public static void printArray(int[] arr) {
+        for (int val : arr) {
+            System.out.print(val + " ");
+        }
+        System.out.println();
+    }
+
+    // Driver code
+    public static void main(String[] args) {
+        int[] arr = {6, 5, 3, 2, 8, 10, 9};
+        int k = 3;
+
+        System.out.println("Original array:");
+        printArray(arr);
+
+        sortNearlySorted(arr, k);
+
+k th largest element in a array
+
+Min-Heap Approach (Simple Version)
+Idea in simple words:
+
+Make a small heap that can only hold k elements.
+
+Go through each number in the array:
+
+If heap has less than k elements → just add it.
+
+If heap has k elements:
+
+Check the smallest number in the heap (heap top).
+
+If the current number is bigger than the smallest, remove the smallest and add the current number.
+
+After looking at all numbers, the smallest in the heap is actually the k-th largest number in the array.
+
+import java.util.PriorityQueue;
+
+public class KthLargestElement {
+
+    public static int findKthLargest(int[] nums, int k) {
+        // Min-Heap of size k
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+
+        for (int num : nums) {
+            minHeap.add(num);
+            if (minHeap.size() > k) {
+                minHeap.poll(); // Remove smallest among the k+1 elements
+            }
+        }
+
+        // The top of the heap is the k-th largest element
+        return minHeap.peek();
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {3, 2, 1, 5, 6, 4};
+        int k = 2;
+
+        int kthLargest = findKthLargest(arr, k);
+        System.out.println(k + "-th largest element is: " + kthLargest);
+    }
+}
+
+Merge k sorted lists
+
+import java.util.PriorityQueue;
+
+// Definition for singly-linked list
+class ListNode {
+    int val;
+    ListNode next;
+    ListNode(int val) { this.val = val; }
+}
+
+public class MergeKSortedLists {
+
+    public static ListNode mergeKLists(ListNode[] lists) {
+        if (lists == null || lists.length == 0) return null;
+
+        // Min-Heap to store the current nodes
+        PriorityQueue<ListNode> pq = new PriorityQueue<>(
+            (a, b) -> a.val - b.val  // Compare nodes by value
+        );
+
+        // Step 1: Add the head of each list to the heap
+        for (ListNode node : lists) {
+            if (node != null) pq.add(node);
+        }
+
+        // Dummy node to build the merged list
+        ListNode dummy = new ListNode(0);
+        ListNode tail = dummy;
+
+        // Step 2: Extract the min node and add next node if exists
+        while (!pq.isEmpty()) {
+            ListNode minNode = pq.poll();  // Smallest node
+            tail.next = minNode;
+            tail = tail.next;
+
+            if (minNode.next != null) {
+                pq.add(minNode.next);
+            }
+        }
+
+        return dummy.next;
+    }
+
+    // Helper function to print a linked list
+    public static void printList(ListNode head) {
+        while (head != null) {
+            System.out.print(head.val + " -> ");
+            head = head.next;
+        }
+        System.out.println("null");
+    }
+
+    // Driver code
+    public static void main(String[] args) {
+        // Example: 3 sorted lists
+        ListNode l1 = new ListNode(1);
+        l1.next = new ListNode(4);
+        l1.next.next = new ListNode(5);
+
+        ListNode l2 = new ListNode(1);
+        l2.next = new ListNode(3);
+        l2.next.next = new ListNode(4);
+
+        ListNode l3 = new ListNode(2);
+        l3.next = new ListNode(6);
+
+        ListNode[] lists = {l1, l2, l3};
+
+        ListNode merged = mergeKLists(lists);
+
+        System.out.println("Merged List:");
+        printList(merged);
+    }
+} 
+
+List 1: 1 -> 4 -> 5
+List 2: 1 -> 3 -> 4
+List 3: 2 -> 6
+
+Step 1️⃣: Add the head of each list to the heap
+
+Heap initially contains the head nodes:
+
+Heap: [1(L1), 1(L2), 2(L3)]
+
+
+1(L1) → value 1 from list 1
+
+1(L2) → value 1 from list 2
+
+2(L3) → value 2 from list 3
+
+✅ Min-Heap property: smallest value at root → 1(L1)
+
+Step 2️⃣: Extract min and add next node
+
+poll() → 1(L1) → append to merged list
+
+1(L1) has next = 4 → add 4(L1) to heap
+
+Heap: [1(L2), 2(L3), 4(L1)]
+Merged List: 1
+
+Step 3️⃣: Extract min and add next node
+
+poll() → 1(L2) → append to merged list
+
+1(L2) has next = 3 → add 3(L2) to heap
+
+Heap: [2(L3), 4(L1), 3(L2)]
+Heap after reheapify: [2(L3), 3(L2), 4(L1)]
+Merged List: 1 -> 1
+
+Step 4️⃣: Extract min and add next node
+
+poll() → 2(L3) → append to merged list
+
+2(L3) has next = 6 → add 6(L3) to heap
+
+Heap: [3(L2), 4(L1), 6(L3)]
+Merged List: 1 -> 1 -> 2
+
+Step 5️⃣: Extract min and add next node
+
+poll() → 3(L2) → append to merged list
+
+3(L2) has next = 4 → add 4(L2) to heap
+
+Heap: [4(L1), 6(L3), 4(L2)]
+Merged List: 1 -> 1 -> 2 -> 3
+
+Step 6️⃣: Extract min and add next node
+
+poll() → 4(L1) → append to merged list
+
+4(L1) has next = 5 → add 5(L1) to heap
+
+Heap: [4(L2), 6(L3), 5(L1)]
+Merged List: 1 -> 1 -> 2 -> 3 -> 4
+
+Step 7️⃣: Extract min and add next node
+
+poll() → 4(L2) → append to merged list
+
+4(L2) has next = null → nothing to add
+
+Heap: [5(L1), 6(L3)]
+Merged List: 1 -> 1 -> 2 -> 3 -> 4 -> 4
+
+Step 8️⃣: Extract min and add next node
+
+poll() → 5(L1) → append to merged list
+
+5(L1) has next = null → nothing to add
+
+Heap: [6(L3)]
+Merged List: 1 -> 1 -> 2 -> 3 -> 4 -> 4 -> 5
+
+Step 9️⃣: Extract min and add next node
+
+poll() → 6(L3) → append to merged list
+
+6(L3) has next = null → nothing to add
+
+Heap: []
+Merged List: 1 -> 1 -> 2 -> 3 -> 4 -> 4 -> 5 -> 6
+
+✅ Final Merged List:
+1 -> 1 -> 2 -> 3 -> 4 -> 4 -> 5 -> 6 -> null
+
+MEDIAN OF A STREAM
+
+Idea: Median with Two Heaps
+
+Two heaps:
+
+Max-Heap → stores the smaller half of numbers
+
+Min-Heap → stores the larger half of numbers
+
+How they help:
+
+Max-Heap top → the largest number in the smaller half
+
+Min-Heap top → the smallest number in the larger half
+
+Keep them balanced:
+
+Make sure the sizes of heaps differ by at most 1
+
+This ensures the middle numbers are at the tops of heaps
+
+Median:
+
+If both heaps have same size:
+Median = (maxHeapTop + minHeapTop)/2 → average of two middle numbers
+
+If heaps differ in size:
+Median = top of the bigger heap → the middle number
+
+import java.util.PriorityQueue;
+
+public class MedianFinder {
+    PriorityQueue<Integer> maxHeap; // smaller half
+    PriorityQueue<Integer> minHeap; // larger half
+
+    public MedianFinder() {
+        maxHeap = new PriorityQueue<>((a,b) -> b-a); // max-heap
+        minHeap = new PriorityQueue<>();             // min-heap
+    }
+
+    public void addNum(int num) {
+        if (maxHeap.isEmpty() || num <= maxHeap.peek()) {
+            maxHeap.add(num);
+        } else {
+            minHeap.add(num);
+        }
+
+        // Balance the heaps
+        if (maxHeap.size() > minHeap.size() + 1) {
+            minHeap.add(maxHeap.poll());
+        } else if (minHeap.size() > maxHeap.size()) {
+            maxHeap.add(minHeap.poll());
+        }
+    }
+
+    public double findMedian() {
+        if (maxHeap.size() == minHeap.size()) {
+            return (maxHeap.peek() + minHeap.peek()) / 2.0;
+        } else {
+            return maxHeap.peek();
+        }
+    }
+
+    public static void main(String[] args) {
+        MedianFinder mf = new MedianFinder();
+        int[] stream = {5, 2, 3, 4, 1};
+        for (int num : stream) {
+            mf.addNum(num);
+            System.out.println("Current median: " + mf.findMedian());
+        }
+    }
+}
+Example Stream: [5, 2, 3, 4, 1]
+
+We will use:
+
+Max-Heap → smaller half
+
+Min-Heap → larger half
+
+Step 1: Add 5
+
+Max-Heap: [5]
+
+Min-Heap: []
+
+Median = top of Max-Heap = 5
+
+Max-Heap: 5
+Min-Heap: -
+Median: 5
+
+Step 2: Add 2
+
+2 ≤ 5 → add to Max-Heap → [5, 2]
+
+Balance: Max-Heap has 2 elements, Min-Heap 0 → move top of Max-Heap to Min-Heap → Max-Heap [2], Min-Heap [5]
+
+Median = (2 + 5)/2 = 3.5
+
+Max-Heap: 2
+Min-Heap: 5
+Median: 3.5
+
+Step 3: Add 3
+
+3 > Max-Heap top (2) → add to Min-Heap → [3,5]
+
+Balance: Min-Heap has 2, Max-Heap has 1 → move top of Min-Heap to Max-Heap → Max-Heap [3,2], Min-Heap [5]
+
+Median = Max-Heap top = 3
+
+Max-Heap: 3, 2
+Min-Heap: 5
+Median: 3
+
+Step 4: Add 4
+
+4 > Max-Heap top (3) → add to Min-Heap → [4,5]
+
+Heaps balanced → sizes differ by 1 → okay
+
+Median = (Max-Heap top + Min-Heap top)/2 = (3 + 4)/2 = 3.5
+
+Max-Heap: 3,2
+Min-Heap: 4,5
+Median: 3.5
+
+Step 5: Add 1
+
+1 ≤ Max-Heap top (3) → add to Max-Heap → [3,2,1]
+
+Balance → okay (size difference = 1)
+
+Median = Max-Heap top = 3
+
+Max-Heap: 3,2,1
+Min-Heap: 4,5
+Median: 3
+
+✅ Resulting Medians after each step:
+5, 3.5, 3, 3.5, 3
+
+Example Stream: [5, 2, 3, 4, 1]
+
+We will use:
+
+Max-Heap → smaller half
+
+Min-Heap → larger half
+
+Step 1: Add 5
+
+Max-Heap: [5]
+
+Min-Heap: []
+
+Median = top of Max-Heap = 5
+
+Max-Heap: 5
+Min-Heap: -
+Median: 5
+
+Step 2: Add 2
+
+2 ≤ 5 → add to Max-Heap → [5, 2]
+
+Balance: Max-Heap has 2 elements, Min-Heap 0 → move top of Max-Heap to Min-Heap → Max-Heap [2], Min-Heap [5]
+
+Median = (2 + 5)/2 = 3.5
+
+Max-Heap: 2
+Min-Heap: 5
+Median: 3.5
+
+Step 3: Add 3
+
+3 > Max-Heap top (2) → add to Min-Heap → [3,5]
+
+Balance: Min-Heap has 2, Max-Heap has 1 → move top of Min-Heap to Max-Heap → Max-Heap [3,2], Min-Heap [5]
+
+Median = Max-Heap top = 3
+
+Max-Heap: 3, 2
+Min-Heap: 5
+Median: 3
+
+Step 4: Add 4
+
+4 > Max-Heap top (3) → add to Min-Heap → [4,5]
+
+Heaps balanced → sizes differ by 1 → okay
+
+Median = (Max-Heap top + Min-Heap top)/2 = (3 + 4)/2 = 3.5
+
+Max-Heap: 3,2
+Min-Heap: 4,5
+Median: 3.5
+
+Step 5: Add 1
+
+1 ≤ Max-Heap top (3) → add to Max-Heap → [3,2,1]
+
+Balance → okay (size difference = 1)
+
+Median = Max-Heap top = 3
+
+Max-Heap: 3,2,1
+Min-Heap: 4,5
+Median: 3
+
+✅ Resulting Medians after each step:
+5, 3.5, 3, 3.5, 3
