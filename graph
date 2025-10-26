@@ -1,0 +1,347 @@
+Graph
+  TRAVERSAL(BFS ,  DFS)
+
+DFS Traversal
+import java.util.*;
+
+class DFSTraversal {
+    // Recursive DFS function
+    static void dfs(int node, boolean[] visited, List<List<Integer>> adj, List<Integer> result) {
+        visited[node] = true;          // mark as visited
+        result.add(node);              // add to traversal list
+
+        for (int neighbor : adj.get(node)) {
+            if (!visited[neighbor]) {
+                dfs(neighbor, visited, adj, result);
+            }
+        }
+    }
+
+    static List<Integer> dfsOfGraph(int V, List<List<Integer>> adj) {
+        boolean[] visited = new boolean[V];
+        List<Integer> result = new ArrayList<>();
+
+        // Run DFS for all unvisited nodes (for disconnected graphs)
+        for (int i = 0; i < V; i++) {
+            if (!visited[i]) {
+                dfs(i, visited, adj, result);
+            }
+        }
+
+        return result;
+    }
+
+    public static void main(String[] args) {
+        int V = 5;
+        List<List<Integer>> adj = new ArrayList<>();
+        for (int i = 0; i < V; i++) adj.add(new ArrayList<>());
+
+        // Build graph
+        adj.get(0).add(1);
+        adj.get(0).add(2);
+        adj.get(1).add(0);
+        adj.get(1).add(3);
+        adj.get(2).add(0);
+        adj.get(2).add(4);
+        adj.get(3).add(1);
+        adj.get(3).add(4);
+        adj.get(4).add(2);
+        adj.get(4).add(3);
+
+        List<Integer> traversal = dfsOfGraph(V, adj);
+        System.out.println("DFS Traversal: " + traversal);
+    }
+}
+
+BFS Traversal
+
+import java.util.*;
+
+class BFSTraversal {
+    static List<Integer> bfsOfGraph(int V, List<List<Integer>> adj) {
+        boolean[] visited = new boolean[V];
+        List<Integer> result = new ArrayList<>();
+        Queue<Integer> q = new LinkedList<>();
+
+        // Start from node 0 (you can start anywhere)
+        visited[0] = true;
+        q.add(0);
+
+        while (!q.isEmpty()) {
+            int node = q.poll();     // remove front element
+            result.add(node);        // add to traversal order
+
+            for (int neighbor : adj.get(node)) {
+                if (!visited[neighbor]) {
+                    visited[neighbor] = true;
+                    q.add(neighbor);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public static void main(String[] args) {
+        int V = 5;
+        List<List<Integer>> adj = new ArrayList<>();
+        for (int i = 0; i < V; i++) adj.add(new ArrayList<>());
+
+        // Build the undirected graph
+        adj.get(0).add(1);
+        adj.get(0).add(2);
+        adj.get(1).add(0);
+        adj.get(1).add(3);
+        adj.get(2).add(0);
+        adj.get(2).add(4);
+        adj.get(3).add(1);
+        adj.get(3).add(4);
+        adj.get(4).add(2);
+        adj.get(4).add(3);
+
+        System.out.println("BFS Traversal: " + bfsOfGraph(V, adj));
+    }
+}
+
+Cycle Detection in Undirected Graph
+Start DFS from each unvisited node
+
+(because the graph may be disconnected)
+
+2️⃣ For each node:
+
+Mark it as visited.
+
+For each neighbor:
+
+If neighbor is not visited, recursively DFS on it.
+
+If neighbor is visited and not the parent, then → cycle exists.
+
+import java.util.*;
+
+class DetectCycle {
+    public static boolean isCycle(int V, List<List<Integer>> adj) {
+        boolean[] visited = new boolean[V];
+
+        // handle disconnected graphs
+        for (int i = 0; i < V; i++) {
+            if (!visited[i]) {
+                if (dfs(i, -1, visited, adj))
+                    return true; // cycle found
+            }
+        }
+        return false; // no cycle
+    }
+
+    private static boolean dfs(int node, int parent, boolean[] visited, List<List<Integer>> adj) {
+        visited[node] = true;
+
+        for (int neighbor : adj.get(node)) {
+            if (!visited[neighbor]) {
+                if (dfs(neighbor, node, visited, adj))
+                    return true;
+            } 
+            else if (neighbor != parent) {
+                // visited but not parent → cycle
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static void main(String[] args) {
+        int V = 3;
+        List<List<Integer>> adj = new ArrayList<>();
+        for (int i = 0; i < V; i++) adj.add(new ArrayList<>());
+
+        adj.get(0).add(1);
+        adj.get(1).add(0);
+        adj.get(1).add(2);
+        adj.get(2).add(1);
+        adj.get(2).add(0);
+        adj.get(0).add(2);
+
+        System.out.println("Cycle present: " + isCycle(V, adj));
+    }
+}
+
+Cycle detection in directed graph
+
+import java.util.*;
+
+class DirectedGraphCycle {
+
+    static boolean isCyclic(int V, List<List<Integer>> adj) {
+        boolean[] visited = new boolean[V];
+        boolean[] recStack = new boolean[V];
+
+        for (int i = 0; i < V; i++) {
+            if (!visited[i]) {
+                if (dfs(i, visited, recStack, adj))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean dfs(int node, boolean[] visited, boolean[] recStack, List<List<Integer>> adj) {
+        visited[node] = true;
+        recStack[node] = true;
+
+        for (int neighbor : adj.get(node)) {
+            if (!visited[neighbor]) {
+                if (dfs(neighbor, visited, recStack, adj)) return true;
+            } else if (recStack[neighbor]) {
+                // Node is in current DFS path → cycle
+                return true;
+            }
+        }
+
+        recStack[node] = false; // remove node from current path
+        return false;
+    }
+
+    public static void main(String[] args) {
+        int V = 3;
+        List<List<Integer>> adj = new ArrayList<>();
+        for (int i = 0; i < V; i++) adj.add(new ArrayList<>());
+
+        adj.get(0).add(1);
+        adj.get(1).add(2);
+        adj.get(2).add(1); // cycle here
+
+        boolean hasCycle = isCyclic(V, adj);
+        System.out.println("Cycle present: " + hasCycle);
+    }
+}
+
+Topological sorting (kahns algo)-> BFS
+
+Find nodes with no dependencies (no incoming edges).
+
+Pick one and place it in the ordering.
+
+Remove it from the graph → decrease indegrees of its neighbors.
+
+Repeat until all nodes are placed.
+
+If multiple nodes have indegree 0, any order among them is valid → multiple topological sorts exist.
+
+
+import java.util.*;
+
+class TopologicalSortBFS {
+
+    static List<Integer> topologicalSort(int V, List<List<Integer>> adj) {
+        int[] indegree = new int[V];
+        List<Integer> result = new ArrayList<>();
+
+        // Step 1: Compute indegree of each node
+        for (int u = 0; u < V; u++) {
+            for (int v : adj.get(u)) {
+                indegree[v]++;
+            }
+        }
+
+        // Step 2: Initialize queue with nodes of indegree 0
+        Queue<Integer> q = new LinkedList<>();
+        for (int i = 0; i < V; i++) {
+            if (indegree[i] == 0) q.add(i);
+        }
+
+        // Step 3: Process nodes
+        while (!q.isEmpty()) {
+            int node = q.poll();
+            result.add(node);
+
+            for (int neighbor : adj.get(node)) {
+                indegree[neighbor]--;
+                if (indegree[neighbor] == 0) q.add(neighbor);
+            }
+        }
+
+        // Optional: check if graph had a cycle
+        if (result.size() != V) {
+            System.out.println("Graph has a cycle! Topological sort not possible.");
+        }
+
+        return result;
+    }
+
+    public static void main(String[] args) {
+        int V = 6; // nodes 0..5
+        List<List<Integer>> adj = new ArrayList<>();
+        for (int i = 0; i < V; i++) adj.add(new ArrayList<>());
+
+        // Example graph
+        adj.get(5).add(2);
+        adj.get(5).add(0);
+        adj.get(4).add(0);
+        adj.get(4).add(1);
+        adj.get(2).add(3);
+        adj.get(3).add(1);
+
+        List<Integer> topoOrder = topologicalSort(V, adj);
+        System.out.println("Topological Sort: " + topoOrder);
+    }
+}
+
+TOPO SORT using DFS
+
+import java.util.*;
+
+class TopologicalSortDFS {
+
+    // Recursive DFS helper
+    static void dfs(int node, boolean[] visited, Stack<Integer> stack, List<List<Integer>> adj) {
+        visited[node] = true;
+
+        for (int neighbor : adj.get(node)) {
+            if (!visited[neighbor]) {
+                dfs(neighbor, visited, stack, adj);
+            }
+        }
+
+        // Push node to stack after all neighbors are visited
+        stack.push(node);
+    }
+
+    // Main topological sort function
+    static List<Integer> topologicalSort(int V, List<List<Integer>> adj) {
+        boolean[] visited = new boolean[V];
+        Stack<Integer> stack = new Stack<>();
+        List<Integer> result = new ArrayList<>();
+
+        // Call DFS for all unvisited nodes
+        for (int i = 0; i < V; i++) {
+            if (!visited[i]) {
+                dfs(i, visited, stack, adj);
+            }
+        }
+
+        // Pop all nodes from stack to get topological order
+        while (!stack.isEmpty()) {
+            result.add(stack.pop());
+        }
+
+        return result;
+    }
+
+    public static void main(String[] args) {
+        int V = 6; // Number of nodes 0..5
+        List<List<Integer>> adj = new ArrayList<>();
+        for (int i = 0; i < V; i++) adj.add(new ArrayList<>());
+
+        // Example graph
+        adj.get(5).add(2);
+        adj.get(5).add(0);
+        adj.get(4).add(0);
+        adj.get(4).add(1);
+        adj.get(2).add(3);
+        adj.get(3).add(1);
+
+        List<Integer> topoOrder = topologicalSort(V, adj);
+        System.out.println("Topological Sort (DFS): " + topoOrder);
+    }
+}
