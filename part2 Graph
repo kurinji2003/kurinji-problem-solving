@@ -1,0 +1,345 @@
+Graph part2
+Shortest path in weighted undirected graph
+import java.util.*;
+
+public class ShortestPath {
+
+    static class Node {
+        int v, w;
+        Node(int v, int w) { this.v = v; this.w = w; }
+    }
+
+    public List<Integer> shortestPath(int n, int[][] edges, int src) {
+
+        List<List<Node>> adj = new ArrayList<>();
+        for (int i = 0; i < n; i++) adj.add(new ArrayList<>());
+
+        for (int[] e : edges) {
+            int u = e[0], v = e[1], w = e[2];
+            adj.get(u).add(new Node(v, w));
+            adj.get(v).add(new Node(u, w));
+        }
+
+        List<Integer> dist = new ArrayList<>(Collections.nCopies(n, Integer.MAX_VALUE));
+        dist.set(src, 0);
+
+        Queue<Integer> q = new ArrayDeque<>();
+        q.add(src);
+
+        while (!q.isEmpty()) {
+            int u = q.poll();
+
+            for (Node nei : adj.get(u)) {
+                if (dist.get(u) == Integer.MAX_VALUE) continue;
+
+                int newDist = dist.get(u) + nei.w;
+
+                if (newDist < dist.get(nei.v)) {
+                    dist.set(nei.v, newDist);
+                    q.add(nei.v);
+                }
+            }
+        }
+        return dist;
+    }
+}
+
+shortest path(grid version)
+package Graph;
+
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Queue;
+
+public class ShortestPathGrid {
+
+    int[] rowInc = {-1,-1,-1, 0,0, 1,1,1};
+    int[] colInc = {-1, 0, 1,-1,1,-1,0,1};
+
+    class Block {
+        int row;
+        int col;
+
+        Block(int r, int c) {
+            this.row = r;
+            this.col = c;
+        }
+    }
+
+    private boolean isSafe(int row, int col, int n, int m, int[][] grid) {
+        return row>=0 && row<n && col>=0 && col<m && grid[row][col]==0;
+    }
+    public int shortestPathBinaryMatrix(int[][] grid) {
+        int n = grid.length;
+        int m = grid[0].length;
+
+        int[][] dis = new int[n][m];
+        for(int[] d : dis) Arrays.fill(d, Integer.MAX_VALUE);
+
+        Queue<Block> q = new ArrayDeque<>();
+
+        if(grid[0][0] == 0) {
+            dis[0][0] = 0;
+            q.add(new Block(0,0));
+        }
+
+        while(!q.isEmpty()) {
+            Block block = q.poll();
+
+            //Explore all 8 directions
+            for(int k=0;k<8;k++) {
+                int nextRow = block.row + rowInc[k];
+                int nextCol = block.col + colInc[k];
+
+
+                if(isSafe(nextRow, nextCol, n, m, grid)) {
+                    int newDis = dis[block.row][block.col] + 1;
+                    int oldDis = dis[nextRow][nextCol];
+
+                    if(newDis < oldDis) {
+                        q.add(new Block(nextRow, nextCol));
+                        dis[nextRow][nextCol] = newDis;
+                    }
+                }
+            }
+        }
+
+        return dis[n-1][m-1];
+    }
+}
+shortest path in directed acyclic graph(DAG)
+import java.util.*;
+
+public class ShortestPathDAG {
+
+    static class Edge {
+        int to, wt;
+        Edge(int t, int w) {
+            to = t; wt = w;
+        }
+    }
+
+    // Topological Sort (DFS)
+    private static void topoSort(int node, List<List<Edge>> adj, boolean[] vis, Stack<Integer> st) {
+        vis[node] = true;
+        for (Edge e : adj.get(node)) {
+            if (!vis[e.to]) topoSort(e.to, adj, vis, st);
+        }
+        st.push(node); // add after exploring children
+    }
+
+    // Shortest path in DAG from given source
+    public static int[] shortestPath(int n, List<List<Edge>> adj, int src) {
+
+        // Step 1: Topological Sort
+        boolean[] vis = new boolean[n];
+        Stack<Integer> st = new Stack<>();
+
+        for (int i = 0; i < n; i++)
+            if (!vis[i]) topoSort(i, adj, vis, st);
+
+        // Step 2: Distance array
+        int[] dist = new int[n];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        dist[src] = 0;
+
+        // Step 3: Relax edges in topological order
+        while (!st.isEmpty()) {
+            int node = st.pop();
+
+            if (dist[node] != Integer.MAX_VALUE) { // if reachable
+                for (Edge e : adj.get(node)) {
+                    if (dist[node] + e.wt < dist[e.to]) {
+                        dist[e.to] = dist[node] + e.wt;
+                    }
+                }
+            }
+        }
+
+        return dist;
+    }
+
+dijkstras algorithm(using PQ)
+public class DijkstraSimple {
+
+    // Edge class for adjacency list
+    static class Edge {
+        int to, wt;
+        Edge(int t, int w) {
+            to = t;
+            wt = w;
+        }
+    }
+
+    // Convert edges list to adjacency list
+    private static List<List<Edge>> buildGraph(int n, int[][] edges) {
+        List<List<Edge>> adj = new ArrayList<>();
+        for (int i = 0; i < n; i++) adj.add(new ArrayList<>());
+
+        for (int[] e : edges) {
+            int u = e[0], v = e[1], w = e[2];
+            adj.get(u).add(new Edge(v, w));
+            adj.get(v).add(new Edge(u, w));  // because undirected
+        }
+        return adj;
+    }
+
+    // Dijkstra Algorithm
+    public static int[] dijkstra(int n, int[][] edges, int src) {
+
+        List<List<Edge>> adj = buildGraph(n, edges);
+
+        int[] dist = new int[n];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        dist[src] = 0;
+
+        PriorityQueue<Edge> pq =
+            new PriorityQueue<>(Comparator.comparingInt(e -> e.wt));
+
+        // start from source
+        pq.add(new Edge(src, 0));
+
+        while (!pq.isEmpty()) {
+            Edge curr = pq.poll();
+            int node = curr.to;
+
+            for (Edge e : adj.get(node)) {
+                int newDist = dist[node] + e.wt;
+                if (newDist < dist[e.to]) {
+                    dist[e.to] = newDist;
+                    pq.add(new Edge(e.to, newDist));
+                }
+            }
+        }
+        return dist;
+    }
+bellman ford Algorithm(detect negative cycle)
+package Graph;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
+public class BellmanFord {
+
+    /*
+    Relax (V-1) times to calculate min distance to the farthest node
+    If distance changes in Vth iteration --> negative cycle
+     */
+    private static ArrayList<ArrayList<ShortestPath.Node>> convertToAdj(int n, int[][] edges) {
+        ArrayList<ArrayList<ShortestPath.Node>> adj = new ArrayList<>();
+        for(int i=0;i<n;i++) adj.add(new ArrayList<>());
+
+        //[u,v,d] : u--->v(distance = d)
+        // v-->u (d)
+        for(int[] edge : edges) {
+            adj.get(edge[0]).add(new ShortestPath.Node(edge[1], edge[2]));
+            adj.get(edge[1]).add(new ShortestPath.Node(edge[0], edge[2]));
+        }
+        return adj;
+    }
+
+    public static int[] bellmanFord(int V, int[][] edges, int src) {
+        ArrayList<ArrayList<ShortestPath.Node>> adj = convertToAdj(V, edges);
+
+        int[] dis = new int[V];
+        Arrays.fill(dis, Integer.MAX_VALUE);
+        dis[src] = 0;
+
+        //V-1
+        for(int i=0;i<V-1;i++) {
+            //Process each edge --> O(E)
+            for(int node=0;node<V;node++) {
+                for(ShortestPath.Node neighbour : adj.get(node)) {
+                    if(dis[node]!=Integer.MAX_VALUE &&
+                            dis[node] + neighbour.weight < dis[neighbour.id]) {
+                        dis[neighbour.id] = dis[node] + neighbour.weight;
+                    }
+                }
+            }
+        }
+
+        //Process Nth Time
+        for(int node=0;node<V;node++) {
+            for(ShortestPath.Node neighbour : adj.get(node)) {
+                if(dis[node]!=Integer.MAX_VALUE &&
+                        dis[node] + neighbour.weight < dis[neighbour.id]) {
+                    Arrays.fill(dis, -1);
+                    return dis;
+                }
+            }
+        }
+        return dis;
+    }
+}
+
+Minimum Spanning Tree
+Prims Algorithm
+package Graph;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.PriorityQueue;
+
+public class PrimsAlgo {
+
+    static class Node {
+        int id;
+        int weight;
+
+        Node(int d, int w) {
+            this.id = d;
+            this.weight = w;
+        }
+    }
+
+    private List<List<Node>> convertToUndirected(int V, int[][] edges) {
+        List<List<Node>> adj = new ArrayList<>();
+        for(int i=0;i<V;i++)    adj.add(new ArrayList<>());
+
+        //(1-->2 , 3)
+        for(int[] edge : edges) {
+            int u = edge[0];
+            int v = edge[1];
+            int w = edge[2];
+
+            adj.get(u).add(new Node(v, w));
+            adj.get(v).add(new Node(u, w));
+        }
+
+        return adj;
+    }
+
+    //O(VlogV + E*logV) --> Each vertex process its neighbour only once
+    //TC = O(E * logV)
+    public int spanningTree(int V, int[][] edges) {
+        List<List<Node>> adj = convertToUndirected(V, edges);
+        boolean[] vis = new boolean[V];
+
+        //Sort in increasing order of weight
+        PriorityQueue<Node> pq = new PriorityQueue<>(Comparator.comparingInt(node -> node.weight));
+
+        //Process any node
+        pq.add(new Node(0,0));
+        int cost=0;
+        int counter=0;
+
+        while (!pq.isEmpty()) {
+            Node curr = pq.poll(); //O(logV)
+            if(vis[curr.id]) continue;
+
+            vis[curr.id] = true;
+            counter++;
+            cost+= curr.weight;
+
+            //Process non-visited neighbours
+            for(Node neighbour : adj.get(curr.id)) {
+                if(!vis[neighbour.id]) {
+                    pq.add(new Node(neighbour.id, neighbour.weight)); //o(logV)
+                }
+            }
+            if(counter==V)    break;
+        }
+        return cost;
+    }
+}
